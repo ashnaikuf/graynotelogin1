@@ -9,6 +9,7 @@
 
 # production
 /build
+./bk
 
 # debug
 npm-debug.log*
@@ -18,7 +19,6 @@ yarn-error.log*
 
 # env files
 .env*
-./bk
 
 # vercel
 .vercel

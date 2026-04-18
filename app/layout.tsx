@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { DM_Sans } from "next/font/google"
+import { Toaster } from "sonner"
 import "./globals.css"
 
 const dmSans = DM_Sans({
@@ -34,7 +35,10 @@ html {
 }
         `}</style>
       </head>
-      <body className={dmSans.variable}>{children}</body>
+      <body className={dmSans.variable}>
+        {children}
+        <Toaster richColors position="top-right" />
+      </body>
     </html>
   )
 }

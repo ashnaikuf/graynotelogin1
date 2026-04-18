@@ -1,16 +1,44 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Eye, EyeOff, ArrowLeft } from "lucide-react"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [currentView, setCurrentView] = useState<"login" | "register" | "forgot">("login")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+
+    const supabase = createClient()
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      toast.error(error.message)
+      setIsLoading(false)
+    } else {
+      toast.success("Login successful! Redirecting...")
+      router.push("/dashboard")
+      router.refresh()
+    }
+  }
 
   return (
     <div className="min-h-screen flex font-sans">
@@ -72,7 +100,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               {currentView === "register" && (
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-sm font-medium text-foreground">
@@ -94,8 +122,11 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="user@company.com"
+                  placeholder="user@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="h-12 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#3F3FF3]"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -109,7 +140,10 @@ export default function LoginPage() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="h-12 pr-10 border-gray-200 focus:ring-0 shadow-none rounded-lg bg-white focus:border-[#3F3FF3]"
+                      disabled={isLoading}
                     />
                     <Button
                       type="button"
@@ -166,6 +200,7 @@ export default function LoginPage() {
                     </Label>
                   </div>
                   <Button
+                    type="button"
                     variant="link"
                     className="p-0 h-auto text-sm hover:text-opacity-80 cursor-pointer"
                     style={{ color: "#3F3FF3" }}
@@ -175,16 +210,18 @@ export default function LoginPage() {
                   </Button>
                 </div>
               )}
-            </div>
 
-            <Button
-              className="w-full h-12 text-sm font-medium text-white hover:opacity-90 rounded-lg shadow-none cursor-pointer"
-              style={{ backgroundColor: "#3F3FF3" }}
-            >
-              {currentView === "login" && "Log In"}
-              {currentView === "register" && "Create Account"}
-              {currentView === "forgot" && "Send Reset Link"}
-            </Button>
+              <Button
+                type="submit"
+                className="w-full h-12 text-sm font-medium text-white hover:opacity-90 rounded-lg shadow-none cursor-pointer"
+                style={{ backgroundColor: "#3F3FF3" }}
+                disabled={isLoading}
+              >
+                {isLoading ? "Logging in..." : currentView === "login" && "Log In"}
+                {!isLoading && currentView === "register" && "Create Account"}
+                {!isLoading && currentView === "forgot" && "Send Reset Link"}
+              </Button>
+            </form>
 
             {currentView !== "forgot" && (
               <>
@@ -240,7 +277,7 @@ export default function LoginPage() {
             <div className="text-center text-sm text-muted-foreground">
               {currentView === "login" && (
                 <>
-                  Don't Have An Account?{" "}
+                  {"Don't Have An Account? "}
                   <Button
                     variant="link"
                     className="p-0 h-auto text-sm hover:text-opacity-80 font-medium cursor-pointer"
